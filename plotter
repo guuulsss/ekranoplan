@@ -1,10 +1,50 @@
-# gui.py
-from PyQt5 import QtWidgets, QtCore
-from PyQt5.QtCore import Qt
+import numpy as np
+import matplotlib.pyplot as plt
 
-class GuiApp(QtWidgets.QMainWindow):
-    def __init__(self, simulation, plotter):
-        super().__init__()
-        self.simulation = simulation
-        self.plotter = plotter
-        self.setWindowTitle('Flight Simulator')
+class Plotter:
+    def __init__(self, canvas, param_canvas):
+        self.canvas = canvas
+        self.param_canvas = param_canvas
+
+    def plot_trajectory(self, state_data):
+        self.canvas.figure.clear()
+        ax = self.canvas.figure.add_subplot(111, projection='3d')
+
+        state_array = np.array(state_data)
+        x = state_array[:, 9]
+        y_pos = state_array[:, 10]
+        z = state_array[:, 11]
+
+        ax.plot(x, y_pos, z, label='Flight Trajectory')
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_zlabel('Z')
+        ax.scatter(x[-1], y_pos[-1], z[-1], color='red', label='Current Position')
+        ax.legend()
+        self.canvas.draw()
+
+    def plot_parameters(self, t_data, state_data):
+        self.param_canvas.figure.clear()
+        axes = self.param_canvas.figure.subplots(2, 2)
+
+        t = t_data
+        state_array = np.array(state_data)
+
+        speed = np.sqrt(state_array[:, 0]**2 + state_array[:, 1]**2 + state_array[:, 2]**2)
+        z = state_array[:, 11]
+        theta = state_array[:, 8]
+        phi = state_array[:, 6]
+
+        axes[0, 0].plot(t, speed)
+        axes[0, 0].set_title('Speed')
+
+        axes[0, 1].plot(t, z)
+        axes[0, 1].set_title('Height')
+
+        axes[1, 0].plot(t, theta)
+        axes[1, 0].set_title('Pitch Angle (θ)')
+
+        axes[1, 1].plot(t, phi)
+        axes[1, 1].set_title('Roll Angle (φ)')
+
+        self.param_canvas.draw()
