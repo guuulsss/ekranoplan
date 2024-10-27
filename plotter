@@ -1,0 +1,10 @@
+# gui.py
+from PyQt5 import QtWidgets, QtCore
+from PyQt5.QtCore import Qt
+
+class GuiApp(QtWidgets.QMainWindow):
+    def __init__(self, simulation, plotter):
+        super().__init__()
+        self.simulation = simulation
+        self.plotter = plotter
+        self.setWindowTitle('Flight Simulator')
