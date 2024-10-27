@@ -1,30 +1,34 @@
 import numpy as np
-from control import ss, step_response
-import matplotlib.pyplot as plt
-from system_matrices import A, B, C, D, Kh
+from scipy.integrate import solve_ivp
+from dynamics import dynamics
 
-def simulate_system():
-    A_cl = A - B @ Kh  # Новая матрица состояния для замкнутой системы
+class Simulation:
+    def __init__(self, initial_state, d_func, Fthrust_func, H_func, t_span=(0, 1e9)):
+        self.initial_state = initial_state
+        self.d_func = d_func
+        self.Fthrust_func = Fthrust_func
+        self.H_func = H_func
+        self.t_span = t_span
+        self.current_time = 0
+        self.state = initial_state.copy()
+        self.t_data = []
+        self.state_data = []
 
-    closed_loop_system = ss(A_cl, B, C, D)
-
-    time = np.linspace(0, 10, 1000)
-    t, y = step_response(closed_loop_system, time)
-
-    return t, y
-
-def plot_response(t, y):
-    plt.figure(figsize=(10, 8))
-    num_outputs = y.shape[0]
-    num_inputs = y.shape[1]
-
-    for i in range(num_outputs):
-        for j in range(num_inputs):
-            plt.plot(t, y[i, j, :], label=f'Output {i + 1}, Input {j + 1}')
-
-    plt.xlabel('Time [s]')
-    plt.ylabel('Response')
-    plt.legend()
-    plt.title('Step Response of the Closed-Loop System')
-    plt.grid()
-    plt.show()
+    def update_state(self, dt):
+        t_span = (self.current_time, self.current_time + dt)
+        d = self.d_func(self.current_time)
+        Fthrust = self.Fthrust_func(self.current_time)
+        
+        try:
+            sol = solve_ivp(lambda t, y: dynamics(t, y, d, Fthrust, self.H_func),
+                            t_span, self.state, method='Radau', max_step=dt)
+            if not sol.success:
+                raise RuntimeError('Integrator failed.')
+            self.current_time += dt
+            self.state = sol.y[:, -1]
+            self.t_data.append(self.current_time)
+            self.state_data.append(self.state.copy())
+            return True
+        except Exception as e:
+            print(f"Simulation error at time {self.current_time:.2f}: {e}")
+            return False
