@@ -1,6 +1,6 @@
 import sys
 from PyQt5 import QtWidgets
-from simulation import Simulation
+from simulate import Simulation
 from plotter import Plotter
 from gui import GuiApp
 
