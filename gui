@@ -1,0 +1,11 @@
+from PyQt5 import QtWidgets, QtCore
+from PyQt5.QtCore import Qt
+
+class GuiApp(QtWidgets.QMainWindow):
+    def __init__(self, simulation, plotter):
+        super().__init__()
+        self.simulation = simulation
+        self.plotter = plotter
+        self.setWindowTitle('Flight Simulator')
+        # (добавить создание виджетов, sliders, и т.д.)
+        # (например, auto_button, d_slider, Fthrust_slider, log_output)
